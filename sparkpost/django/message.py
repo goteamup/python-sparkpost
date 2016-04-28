@@ -35,8 +35,15 @@ class SparkPostMessage(dict):
         if message.bcc:
             formatted['bcc'] = message.bcc
 
-        if hasattr(message, 'reply_to') and message.reply_to:
-            formatted['reply_to'] = ','.join(message.reply_to)
+        if hasattr(message, 'reply_to'):
+            if message.reply_to:
+                formatted['reply_to'] = ','.join(message.reply_to)
+        else:  # pre Django 1.8
+            reply_to = {
+                k.lower(): v for k, v in message.extra_headers.items()
+            }.get('reply-to')
+            if reply_to:
+                formatted['reply_to'] = reply_to
 
         if isinstance(message, EmailMultiAlternatives):
             for alternative in message.alternatives:
